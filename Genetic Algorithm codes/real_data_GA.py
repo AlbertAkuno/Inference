@@ -6,18 +6,15 @@ Created on Fri Feb  3 12:43:56 2023
 @author: albertakuno
 """
 
-# Librerias necesarias para resolver numéricamente el sistema de ecuaciones
+# Load the necessary libraries for numerically solving the system of equations
 
 from scipy.integrate import odeint
-#from scipy.interpolate import interp1d  # Para suavizar las curvas de las soluciones numericas
 
 import numpy as np
-
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Librerías necesarias para el algoritmo genético
-#from scipy.stats import truncnorm
+# Necessary libraries for Genetic Algorithm
 
 from deap import base
 from deap import creator
@@ -32,28 +29,24 @@ import random
 
 #import pickle
 
-# Módulo para implementar elitismo
+# Module for implementing elitism
 
 import elitism
 
 # problem constants:
 DIMENSIONS = 20  # number of dimensions
-#BOUND_LOW, BOUND_UP = 0.0, 7.0  # boundaries for all dimensions
 BOUND_LOW, BOUND_UP = [0.0]*8 + [0.0]*4 + [0.0]*4 + [0.0]*4, [100.0]*8 + [1.68]*4 + [0.3]*4 + [1.0]*4 # boundaries for all dimensions
 
 # Genetic Algorithm constants:
 POPULATION_SIZE = 300
 #LAMBDA = 400
 P_CROSSOVER = 0.75  # probability for crossover
-P_MUTATION = 0.55 # (try also 0.5) probability for mutating an individual
+P_MUTATION = 0.55  #probability of mutation
 #MU = 60
 MAX_GENERATIONS = 7000
 HALL_OF_FAME_SIZE = 1
 CROWDING_FACTOR = 1.0  # crowding factor for crossover and mutation
 
-# set the random seed:
-#RANDOM_SEED = 42
-#random.seed(RANDOM_SEED)
 
 toolbox = base.Toolbox()
 
@@ -64,10 +57,8 @@ creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMin)
 
 # helper function for creating random real numbers uniformly distributed within a given range [low, up]
-# it assumes that the range is the same for every dimension
+# it assumes that the range different for every dimension
 
-#def randomFloat(low, up):
-#    return [random.uniform(l, u) for l, u in zip([low] * DIMENSIONS, [up] * DIMENSIONS)]
 def randomFloat(lowv, upv):
     return [random.uniform(l, u) for l, u in zip(lowv, upv)]
 
@@ -86,22 +77,11 @@ df_4zones2 = pd.read_excel(r"/Volumes/F/Hermosillo_four_regions data/Ageb_zonas_
 
 frame = [dat_one_alpha_FF,df_4zones2]
 
-#dat_one_alpha_FF2 = dat_one_alpha_FF
-#dat_one_alpha_FF2["Zona"] = df_4zones2["Zona"]
-
-#POBTOT_zone2 = dat_one_alpha_FF2[["POBTOT", "Zona"]]
-#Nbar_data2 = POBTOT_zone2.groupby('Zona').sum().reset_index()
-#Nbar2 = np.array(Nbar_data2["POBTOT"])
-#N1 = Nbar2[0]
-#N2 = Nbar2[1]
-#N3 = Nbar2[2]
-#N4 = Nbar2[3]
 
 new_df = pd.concat(frame, axis=1)
 
 POBTOT_zone = new_df[["POBTOT", "Zona"]]
 
-#df_zona_POBTOT = pd.concat([dat_one_alpha_FF["POBTOT"], df_4zones2["Zona"] ])
 
 Nbar_data = POBTOT_zone.groupby('Zona').sum().reset_index()
 
@@ -136,8 +116,10 @@ tau = np.ones([4])* (1/180)
 Nbar = np.array(Nbar_data["POBTOT"])
 Lambda = np.ones([4])* (15.7/(1000*365))
 phi = np.ones([4])*0.00385
-# Sistema de ecuaciones del modelo SIR.
 
+
+
+# System of differential equations for the multi-patch SEIRS model.
 
 def deriv(Y, t, b1,b2,b3,b4, k1, k2, k3, k4, g1, g2, g3, g4):
     S1, S2, S3, S4, E1, E2, E3, E4, I1, I2, I3, I4, Y1, Y2, Y3, Y4, R1, R2, R3, R4, N1, N2, N3, N4 = Y
@@ -199,7 +181,6 @@ N04 = Nbar[3]
 R01 = 0; R02 = 0;R03 = 0;R04 = 0
 e01 =10; e02 =20; e03 = 5; e04 = 5;
 i01 =1; i02 = 2 ; i03 = 0; i04 = 0;
-#y01 =1; y02 = 2; y03 = 0; y04 =  0;
 
 S01 = N01 - e01 - i01 - R01
 S02 = N02 - e02 - i02 - R02
@@ -266,7 +247,7 @@ ax[1][1].grid()
 ax[1][1].legend()
 
 
-# Esta funcion calcula la distancia Manhattan entre los datos numericos y los reales.
+# This function computes the objective function
 
 def objective(individual):
     e01 = individual[0]
@@ -331,11 +312,8 @@ def objective(individual):
     return f,
 
 
-
 #def fitness(individual):
 #    return f1(individual), f2(individual), f3(individual), f4(individual),
-
-
 
 
 toolbox.register("evaluate", objective)
@@ -399,8 +377,9 @@ if __name__ == "__main__":
     main()
 
 
+#This function uses the estimated parameters to plot the fitted and observed incidences and display the results of the objective function
 
-def funcion_objetivo(e01, e02, e03, e04, i01, i02, i03, i04, w1, w2, w3, w4, x1, x2, x3, x4, y1, y2, y3, y4):
+def objective_function(e01, e02, e03, e04, i01, i02, i03, i04, w1, w2, w3, w4, x1, x2, x3, x4, y1, y2, y3, y4):
     
     N01 = Nbar[0]
     N02 = Nbar[1]
@@ -542,7 +521,4 @@ def funcion_objetivo(e01, e02, e03, e04, i01, i02, i03, i04, w1, w2, w3, w4, x1,
     f_sum = f1 + f2 + f3 + f4
     return f1, f2, f3, f4, f_sum
 
-funcion_objetivo(19.99999942369515, 19.999998471849075, 19.99997856949357, 2.6164477744447652e-05, 19.999997736977743, 19.999999320144887, 19.999992508440183, 12.245579451746421, 1.0088267859526594, 0.9833660221694541, 0.3886507991259145, 1.3970717581715928, 0.2999999858118283, 0.29999999965724844, 0.2999999999710161, 0.2999999956316358, 0.8837660125905965, 0.9911434917466939, 0.9999999893020635, 0.7033699469500899)
-funcion_objetivo(19.999999999999307, 19.999999999945516, 19.99999999999962, 0.11840007016497191, 19.999999999977522, 19.99999999999637, 19.999999999995627, 14.420859322242805, 1.1053079378317514, 1.0122602546838357, 0.4408223155824959, 1.3428742286523965, 0.29999999999995136, 0.3, 0.29999999999997096, 0.3, 0.9999999999999457, 0.9999999999999627, 0.9999999999999983, 0.6839583504754282)
-
-funcion_objetivo(58.99250025793385, 78.1313399114446, 22.940428635889372, 4.4192287513890935, 7.544404607688672e-10, 2.7515297960448733e-11, 4.671863140428291e-10, 2.6108555899579343e-10, 1.0949862078441988, 1.0473418647878072, 0.49042379724841284, 1.4951421562761436, 0.3, 0.2999999999999995, 0.3, 0.3, 1.0, 1.0, 1.0, 0.7852693136629093)
+objective_function(58.99250025793385, 78.1313399114446, 22.940428635889372, 4.4192287513890935, 7.544404607688672e-10, 2.7515297960448733e-11, 4.671863140428291e-10, 2.6108555899579343e-10, 1.0949862078441988, 1.0473418647878072, 0.49042379724841284, 1.4951421562761436, 0.3, 0.2999999999999995, 0.3, 0.3, 1.0, 1.0, 1.0, 0.7852693136629093)

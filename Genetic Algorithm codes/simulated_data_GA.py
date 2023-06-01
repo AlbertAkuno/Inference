@@ -6,18 +6,16 @@ Created on Sun Nov 20 19:31:06 2022
 @author: albertakuno
 """
 
-# Librerias necesarias para resolver numéricamente el sistema de ecuaciones
+# Load the necessary libraries for numerically solving the system of equations
 
 from scipy.integrate import odeint
-#from scipy.interpolate import interp1d  # Para suavizar las curvas de las soluciones numericas
 
 import numpy as np
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Librerías necesarias para el algoritmo genético
-#from scipy.stats import truncnorm
+# Necessary libraries for Genetic Algorithm
 
 from deap import base
 from deap import creator
@@ -32,28 +30,25 @@ import random
 
 #import pickle
 
-# Módulo para implementar elitismo
+# Module for implementing elitism
 
 import elitism
 
 # problem constants:
 DIMENSIONS = 20  # number of dimensions
-#BOUND_LOW, BOUND_UP = 0.0, 7.0  # boundaries for all dimensions
+
 BOUND_LOW, BOUND_UP = [0.0]*8 + [0.5]*4 + [0.0]*4 + [0.0]*4, [200.0]*8 + [2.0]*4 + [1.0]*4 + [1.0]*4 # boundaries for all dimensions
 
 # Genetic Algorithm constants:
 POPULATION_SIZE = 300
 #LAMBDA = 400
 P_CROSSOVER = 0.75  # probability for crossover
-P_MUTATION = 0.55 # (try also 0.5) probability for mutating an individual
+P_MUTATION = 0.55 #probability of mutation
 #MU = 60
 MAX_GENERATIONS = 7000
 HALL_OF_FAME_SIZE = 1
 CROWDING_FACTOR = 1.0  # crowding factor for crossover and mutation
 
-# set the random seed:
-#RANDOM_SEED = 42
-#random.seed(RANDOM_SEED)
 
 toolbox = base.Toolbox()
 
@@ -64,10 +59,8 @@ creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMin)
 
 # helper function for creating random real numbers uniformly distributed within a given range [low, up]
-# it assumes that the range is the same for every dimension
+# it assumes that the range is different for every dimension
 
-#def randomFloat(low, up):
-#    return [random.uniform(l, u) for l, u in zip([low] * DIMENSIONS, [up] * DIMENSIONS)]
 def randomFloat(lowv, upv):
     return [random.uniform(l, u) for l, u in zip(lowv, upv)]
 
@@ -90,7 +83,6 @@ new_df = pd.concat(frame, axis=1)
 
 POBTOT_zone = new_df[["POBTOT", "Zona"]]
 
-#df_zona_POBTOT = pd.concat([dat_one_alpha_FF["POBTOT"], df_4zones2["Zona"] ])
 
 Nbar_data = POBTOT_zone.groupby('Zona').sum().reset_index()
 
@@ -121,16 +113,15 @@ alpha = np.array( [0.9668, 0.9265, 0.9692, 0.9680])
 p = np.array([ [0.8164, 0.1289, 0.0372, 0.0175], [0.1222, 0.8119, 0.0215, 0.0444], [0.0722, 0.0504, 0.7293, 0.1481], [0.0313, 0.1166, 0.1278, 0.7243] ])
 pstar = generate_actual_pstar(p, alpha)
 
-##alpha and pstar for the third period second part
-#alpha = np.array([0.9680, 0.9269, 0.9678, 0.9700])
-#pstar = np.array([ [0.8148, 0.1321, 0.0377, 0.0154], [0.1253, 0.8097, 0.0190, 0.0460], [0.0742, 0.0483, 0.7217, 0.1558], [0.0271, 0.1158, 0.1311, 0.7260] ])
 
 mu = np.ones([4])* (0.06/(1000*365))
 tau = np.ones([4])* (1/180)
 Nbar = np.array(Nbar_data["POBTOT"])
 Lambda = np.ones([4])* (15.7/(1000*365))
 phi = np.ones([4])*0.00385
-# Sistema de ecuaciones del modelo SIR.
+
+
+# System of differential equations for the multi-patch SEIRS model.
 
 
 def deriv(Y, t, b1, b2, b3, b4, k1, k2, k3, k4, g1, g2, g3, g4):
@@ -193,7 +184,7 @@ N04 = Nbar[3]
 R01 = 0; R02 = 0;R03 = 0;R04 = 0
 e01 =10; e02 =20; e03 = 5; e04 = 5;
 i01 =1; i02 = 2 ; i03 = 0; i04 = 0;
-#y01 =1; y02 = 2; y03 = 0; y04 =  0;
+
 
 S01 = N01 - e01 - i01 - R01
 S02 = N02 - e02 - i02 - R02
@@ -273,6 +264,7 @@ ax[1][1].legend()
 plt.savefig("/Volumes/F/Hermosillo_four_regions data/figures/zones_simulated_data.png", format = "png", dpi=300)
 
 
+# This function computes the objective function
 
 def objective(individual):
     e01 = individual[0]
@@ -400,7 +392,7 @@ if __name__ == "__main__":
 
 
 
-#Tis function plots the fitted and simulated data
+#This function uses the estimated parameters to plot the fitted and observed incidences and display the results of the objective function
 
 def funcion_objetivo(e01, e02, e03, e04, i01, i02, i03, i04, w1, w2, w3, w4, x1, x2, x3, x4, y1, y2, y3, y4):
     
